@@ -1,4 +1,3 @@
-import pathlib
 import re
 
 def findColorOfUser(pngFile, user):
@@ -16,6 +15,7 @@ def findColorOfUser(pngFile, user):
     return color 
 
 def cropMistakesOfOpponent(pngFile, colorOfUser):
+    info=[]
     moves=[]
     comments=[]
     for line in pngFile:
@@ -63,9 +63,12 @@ def cropMistakesOfOpponent(pngFile, colorOfUser):
             comments.append(comments.pop()+' '+curMoveString)
             curMoveString=''
             curCommentString=''
+        else:
+            if line.strip():
+                info.append(line)
 
 
-    game=''
+    game=''.join(info)
     for i, x in enumerate(comments):
         regResult=re.match(r'\s*\{\s*(.*?)\}\s*\{\s*(.*?)\}\s*\(\s*(.*?)\)\s*', x) 
         if regResult:
