@@ -98,15 +98,14 @@ class ChessGameFromPGN:
 
     def returnGameWithAnalysisOnlyForPlayer(self):
         game=''.join(self.info)
-        game+=getGameWithoutOpponentsAnalysis()
+        game+=self.getGameWithoutOpponentsAnalysis()
         return game
 
     def getGameWithoutOpponentsAnalysis(self):
         game=''
         for i, x in enumerate(self.comments):
-            regResult=re.match(r'\s*\{\s*(.*?)\}\s*\{\s*(.*?)\}\s*\(\s*(.*?)\)\s*', x) 
-            if regResult:
-                if (self.playerColor == 'White' and i%2==0) or (self.playerColor == 'Black' and i%2==1):
-                    x='{'+regResult.group(2)+'}'
-            game+=self.moves[i]+' '+x+' '
+            if (self.playerColor == 'White' and i%2==0) or (self.playerColor == 'Black' and i%2==1):
+                game+=self.moves[i]+' '
+            else:
+                game+=self.moves[i]+' '+x+' '
         return game
