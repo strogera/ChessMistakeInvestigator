@@ -1,9 +1,10 @@
-import re
+import chess.pgn
+from chessmove import ChessMove
+from chessgamevisitor import ChessGameVisitor
 
 class ChessGameFromPGN:
     info=[]
     moves=[]
-    comments=[]
     mistakes=[]
     playerUserName=''
     playerColor=''
@@ -19,8 +20,8 @@ class ChessGameFromPGN:
             self.readGameInfo(pgnFile)
             self.findColorOfUser()
             pgnFile.seek(0)
-            self.readGame(pgnFile)
-            self.findMistakes()
+            self.moves=chess.pgn.read_game(pgnFile, Visitor=ChessGameVisitor)
+            #self.findMistakes()
 
     def readGameInfo(self, pgnFile):
         for line in pgnFile:
@@ -50,54 +51,8 @@ class ChessGameFromPGN:
                     raise Exception('User: '+user+' is not part of the game')
                 return
 
-    def readGame(self, pgnFile):
-        for line in pgnFile:
-            if self.isGameLine(line):
-                self.seperateMovesFromComments(line)
-
     def isGameLine(self, line):
         return line[0] == '1'
-
-    def seperateMovesFromComments(self, line):
-            curMoveString=''
-            curCommentString=''
-            commentBracesStack=[]
-            for c in line:
-                if c == '{':
-                    curMoveString=curMoveString.strip()
-                    if curMoveString:
-                        self.addMove(curMoveString)
-                        curMoveString=''
-                    else:
-                        if not curCommentString:
-                            curCommentString=self.removeLastCommentandReturn() + ' '
-                    commentBracesStack.append('{')
-                elif c == '}':
-                    curCommentString+=c
-                    commentBracesStack.pop()
-                    if len(commentBracesStack) == 0:
-                        self.addComment(curCommentString)
-                        curCommentString=''
-                    continue
-                elif c == '(':
-                    commentBracesStack.append('(')
-                    if curMoveString.strip():
-                        self.addMove(curMoveString)
-                        curMoveString=''
-                    else:
-                        if not curCommentString:
-                            curCommentString=self.removeLastCommentandReturn()+' '
-                elif c == ')':
-                    curCommentString+=c
-                    commentBracesStack.pop()
-                    if len(commentBracesStack) == 0:
-                        self.addComment(curCommentString)
-                        curCommentString=''
-                    continue
-                if not len(commentBracesStack) == 0:
-                    curCommentString+=c
-                else:
-                    curMoveString+=c
 
     def findMistakes(self):
         for i, move in enumerate(self.moves):
@@ -124,9 +79,15 @@ class ChessGameFromPGN:
 
     def getGameWithoutOpponentsAnalysis(self):
         game=''
-        for i, x in enumerate(self.comments):
-            if  self.playerToMove(i):
-                game+=self.moves[i]+' '+x+' '
+        for i in range(len(self.moves)):
+            game+=str(i+1) +  '. ' +self.moves[i].getWholeMove()
+            """
+            if  self.playerColor == 'White':
+                game+=str(i+1) + '. ' + self.moves[i].getWhiteMoveWithComment() + ' ' + self.moves[i].getBlackMove() + ' '
+            elif self.playerColor == 'Black':
+                game+=str(i+1) + '. ' + self.moves[i].getWhiteMove()+ ' ' + self.moves[i].getBlackMoveWithComment()  
             else:
-                game+=self.moves[i]+' '
+                game+=str(i+1) + '. ' + self.moves[i].getWholeMove()
+                """
+        game+='\n'
         return game
