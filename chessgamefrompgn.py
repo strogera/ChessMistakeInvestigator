@@ -4,9 +4,11 @@ class ChessGameFromPGN:
     info=[]
     moves=[]
     comments=[]
+    mistakes=[]
     playerUserName=''
     playerColor=''
     pgnFilePath=''
+    mistakeDefinitions=['Inaccuracy', 'Mistake', 'Blunder'] 
 
     def __init__(self, path, player):
         self.pgnFilePath=path
@@ -18,6 +20,7 @@ class ChessGameFromPGN:
             self.findColorOfUser()
             pgnFile.seek(0)
             self.readGame(pgnFile)
+            self.findMistakes()
 
     def readGameInfo(self, pgnFile):
         for line in pgnFile:
@@ -96,6 +99,24 @@ class ChessGameFromPGN:
                 else:
                     curMoveString+=c
 
+    def findMistakes(self):
+        for i, move in enumerate(self.moves):
+            if self.playerToMove(i) and self.isMistake(self.comments[i]):
+                self.mistakes.append((move, self.comments[i]))
+
+    def playerToMove(self, index):
+        return (self.playerColor == 'White' and index%2==1) or (self.playerColor == 'Black' and index%2==0)
+
+    def isMistake(self, comment):
+        for mistake in self.mistakeDefinitions:
+            if mistake in comment:
+                return True
+        return False
+
+    def printMistakes(self):
+        for m in self.mistakes:
+            print(m[0], m[1])
+
     def returnGameWithAnalysisOnlyForPlayer(self):
         game=''.join(self.info)
         game+=self.getGameWithoutOpponentsAnalysis()
@@ -104,8 +125,8 @@ class ChessGameFromPGN:
     def getGameWithoutOpponentsAnalysis(self):
         game=''
         for i, x in enumerate(self.comments):
-            if (self.playerColor == 'White' and i%2==0) or (self.playerColor == 'Black' and i%2==1):
-                game+=self.moves[i]+' '
-            else:
+            if  self.playerToMove(i):
                 game+=self.moves[i]+' '+x+' '
+            else:
+                game+=self.moves[i]+' '
         return game
