@@ -86,9 +86,7 @@ class ChessGameFromPGN:
 
     def printMistakes(self):
         for m in self.mistakes:
-            if not m:
-                print('test')
-            print(m.printMove())
+            m.printMove()
 
     def returnGameWithAnalysisOnlyForPlayer(self):
         game=''.join(self.info)

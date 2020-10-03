@@ -24,8 +24,24 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
         self.variation=True
 
     def end_variation(self):
-        self.moves[-1].addComment('( ' + str(self.moveCount) + ('. ' if self.whiteMoveFlag else '...  ') + ' '.join(self.variationMoves) + ')')
+        variationComment='( '+ str(self.moveCount) + ('. ' if self.whiteMoveFlag else '... ') + self.variationMoves[0]
+        variationMoveCounter=self.moveCount
+
+        variationMovesToBeNumbered=self.variationMoves[1::2]
+        variationMovesRest=self.variationMoves[2::2]
+
+        variationMovesNumbered=[]
+        for variationMove in variationMovesToBeNumbered:
+            variationMove= ' ' + str(variationMoveCounter) + '. ' + variationMove
+            variationMovesNumbered.append(variationMove)
+            variationMoveCounter+=1
+
+        result=[None]*(len(variationMovesNumbered)+len(variationMovesRest))
+        result[::2]=variationMovesNumbered
+        result[1::2]=variationMovesRest
+        self.moves[-1].addComment(variationComment + ' '.join(result) + ' )')
         self.variation=False
+        self.variationMoves=[]
 
     def visit_comment(self, comment):
         self.moves[-1].addComment('{ ' + comment + '}')
