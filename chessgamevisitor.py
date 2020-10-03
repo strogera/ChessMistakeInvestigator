@@ -20,7 +20,6 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
 
     def end_variation(self):
         self.moves[-1].addComment('(' + ' '.join(self.variationMoves) + ')')
-        self.moves[-1].printMove()
         self.variation=False
 
     def visit_comment(self, comment):

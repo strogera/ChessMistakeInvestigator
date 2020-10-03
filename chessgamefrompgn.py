@@ -80,14 +80,12 @@ class ChessGameFromPGN:
     def getGameWithoutOpponentsAnalysis(self):
         game=''
         for i in range(len(self.moves)):
-            game+=str(i+1) +  '. ' +self.moves[i].getWholeMove()
-            """
+            #game+=str(i+1) +  '. ' +self.moves[i].getWholeMove()
             if  self.playerColor == 'White':
-                game+=str(i+1) + '. ' + self.moves[i].getWhiteMoveWithComment() + ' ' + self.moves[i].getBlackMove() + ' '
+                game+=str(i+1) + '. ' + self.moves[i].getWhiteMoveWithComment() + ' ' + self.moves[i].getBlackMove(time=True) + ' '
             elif self.playerColor == 'Black':
-                game+=str(i+1) + '. ' + self.moves[i].getWhiteMove()+ ' ' + self.moves[i].getBlackMoveWithComment()  
+                game+=str(i+1) + '. ' + self.moves[i].getWhiteMove(time=True)+ ' ' + self.moves[i].getBlackMoveWithComment()  
             else:
                 game+=str(i+1) + '. ' + self.moves[i].getWholeMove()
-                """
         game+='\n'
         return game

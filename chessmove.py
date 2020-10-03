@@ -34,14 +34,29 @@ class ChessMove:
         else:
             return ''
 
-    def getMove(self):
-        return self.move+self.nag
+    def getMove(self, time=False):
+        return self.move+self.nag + (self.getTimeComment() if time else '')
 
+    def getTimeComment(self):
+        timeComment='{ '
+        for comment in self.comments:
+            if '[%clk' in comment:
+                curString=comment
+                while not curString.startswith('[%clk'):
+                    curString=curString[1:]
+                for c in curString:
+                    if c != ']':
+                        timeComment+=c
+                    else:
+                        timeComment+=c+' }'
+                        break 
+                break
+        return timeComment
     def getComment(self):
         return ''.join(self.comments)
 
     def getMoveWithComment(self):
-        return self.getMove() + ' ' + ' '.join(self.comments) 
+        return self.move+self.nag + ' ' + ' '.join(self.comments) 
 
     def printMove(self):
         print(self.getMoveWithComment())
