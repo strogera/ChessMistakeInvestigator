@@ -44,41 +44,43 @@ class ChessGameFromPGN:
     def findColorOfUser(self):
         for line in self.info:
             if self.playerUserName in line:
-                if "Black" in line:
-                    self.playerColor = "Black"
-                else:
-                    self.playerColor = "White"
-                if self.playerColor == '':
-                    raise Exception('User: '+user+' is not part of the game')
-                return
+                if 'black' in line.lower():
+                    self.playerColor = 'Black'
+                elif 'white' in line.lower():
+                    self.playerColor = 'White'
 
     def isGameLine(self, line):
         return line[0] == '1'
 
     def findMistakesOfPlayer(self):
         comments=''
-        for i, move in enumerate(self.moves):
-            commentsWhite=self.moves[i].getWhiteMoveComment()
-            nagWhite=self.moves[i].getWhiteMoveNag()
-            commentsBlack=self.moves[i].getBlackMoveComment()
-            nagBlack=self.moves[i].getBlackMoveNag()
+        playerMoves=self.getMovesOfColor(self.playerColor)
+        for move in playerMoves:
+            if self.isMistake(move.getComment(), move.getNag()):
+                self.mistakes.append(move)
 
-            if self.playerColor == 'White':
-                if self.isMistake(commentsWhite, nagWhite):
-                    self.mistakes.append(self.moves[i].getWhiteMove())
-            elif self.playerColor == 'Black':
-                if self.isMistake(commentsBlack, nagBlack):
-                    self.mistakes.append(self.moves[i].getBlackMove())
+    def getMovesOfColor(self, color):
+        moves=[]
+        for movePair in self.moves:
+            if color == 'White':
+                moves.append(movePair.getWhiteMove())
+            elif color == 'Black':
+                moves.append(movePair.getBlackMove())
             else:
-                if self.isMistake(commentsWhite, nagWhite):
-                    self.mistakes.append(self.moves[i].getWhiteMove())
-                if self.isMistake(commentsBlack, nagBlack):
-                    self.mistakes.append(self.moves[i].getBlackMove())
-
+                moves.append(movePair.getWhiteMove())
+                moves.append(movePair.getBlackMove())
+        return moves
+            
     def isMistake(self, comment, nag=''):
+        return (self.isMistakeFromComments(comment) or self.isMistakeFromNag(nag))
+
+    def isMistakeFromComments(self, comment):
         for mistake in self.mistakeDefinitionsForComments:
             if mistake in comment:
                 return True
+        return False
+
+    def isMistakeFromNag(self, nag):
         for mistake in self.mistakeDefinitionsForNags:
             if mistake == nag:
                 return True
@@ -96,12 +98,16 @@ class ChessGameFromPGN:
     def getGameWithoutOpponentsAnalysis(self):
         game=''
         for i in range(len(self.moves)):
-            #game+=str(i+1) +  '. ' +self.moves[i].getWholeMove()
-            if  self.playerColor == 'White':
-                game+=str(i+1) + '. ' + self.moves[i].getWhiteMoveWithComment() + ' ' + self.moves[i].getBlackMoveToStr(time=True) + ' '
-            elif self.playerColor == 'Black':
-                game+=str(i+1) + '. ' + self.moves[i].getWhiteMoveToStr(time=True)+ ' ' + self.moves[i].getBlackMoveWithComment()  
-            else:
-                game+=str(i+1) + '. ' + self.moves[i].getWholeMove()
+            game+=self.parseMoveForPlayer(self.playerColor, self.moves[i], i+1)
         game+='\n'
         return game
+
+    def parseMoveForPlayer(self, color, move, moveNumber):
+        moveStr=str(moveNumber) + '. '
+        if color == 'White':
+            moveStr+=move.getWhiteMoveWithComment() + ' ' + move.getBlackMoveToStr(time=True) + ' '
+        elif color == 'Black':
+            moveStr+=move.getWhiteMoveToStr(time=True) + ' ' + move.getBlackMoveWithComment() + ' '
+        else:
+            moveStr=move.getWholeMove() + ' '
+        return moveStr

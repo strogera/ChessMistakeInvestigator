@@ -5,13 +5,13 @@ from chessmovepair import MovePair
 
 class ChessGameVisitor(chess.pgn.BaseVisitor):
     moves=[]
-    variation=False
+    isVariation=False
     variationMoves=[]
     moveCount=0
     whiteMoveFlag=False
 
     def visit_move(self, board, move):
-        if not self.variation:
+        if not self.isVariation:
             self.whiteMoveFlag=not self.whiteMoveFlag
             self.moves.append(ChessMove(board.san(move), board.fen()))
             if self.whiteMoveFlag:
@@ -19,29 +19,40 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
         else:
             self.variationMoves.append(board.san(move))
 
-
     def begin_variation(self):
-        self.variation=True
+        self.isVariation=True
 
     def end_variation(self):
+        self.moves[-1].addComment(self.parseVariation())
+        self.isVariation=False
+        self.variationMoves=[]
+
+    def parseVariation(self):
         variationComment='( '+ str(self.moveCount) + ('. ' if self.whiteMoveFlag else '... ') + self.variationMoves[0]
         variationMoveCounter=self.moveCount
 
         variationMovesToBeNumbered=self.variationMoves[1::2]
         variationMovesRest=self.variationMoves[2::2]
 
-        variationMovesNumbered=[]
-        for variationMove in variationMovesToBeNumbered:
-            variationMove= ' ' + str(variationMoveCounter) + '. ' + variationMove
-            variationMovesNumbered.append(variationMove)
-            variationMoveCounter+=1
+        variationMovesNumbered=self.addNumbersToMoves(variationMovesToBeNumbered, variationMoveCounter)
 
-        result=[None]*(len(variationMovesNumbered)+len(variationMovesRest))
-        result[::2]=variationMovesNumbered
-        result[1::2]=variationMovesRest
-        self.moves[-1].addComment(variationComment + ' '.join(result) + ' )')
-        self.variation=False
-        self.variationMoves=[]
+        return variationComment + ' '.join(self.joinMovesForVariation(variationMovesNumbered, variationMovesRest)) + ')' 
+
+    def addNumbersToMoves(self, moves, startingNumber):
+        #ex. (e4, 1) -> 1. e4
+        counter=startingNumber
+        numberedMoves=[]
+        for move in moves:
+            move= ' ' + str(counter) + '. ' + move
+            numberedMoves.append(move)
+            counter+=1
+        return numberedMoves
+
+    def joinMovesForVariation(self, numbered, rest):
+        result=[None]*(len(numbered)+len(rest))
+        result[::2]=numbered
+        result[1::2]=rest
+        return result
 
     def visit_comment(self, comment):
         self.moves[-1].addComment('{ ' + comment + '}')

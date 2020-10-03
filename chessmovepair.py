@@ -5,7 +5,6 @@ class MovePair:
     whiteMove=None
     blackMove=None
 
-
     def __init__(self, whiteMove, blackMove):
         self.whiteMove=whiteMove
         self.blackMove=blackMove

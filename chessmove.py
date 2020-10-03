@@ -38,7 +38,7 @@ class ChessMove:
             return ''
 
     def getMove(self, time=False):
-        return self.move+self.nag + (self.getTimeComment() if time else '')
+        return self.move+self.nag + ' ' + (self.getTimeComment() if time else '')
 
     def getTimeComment(self):
         timeComment='{ '
@@ -55,8 +55,9 @@ class ChessMove:
                         break 
                 break
         return timeComment
+
     def getComment(self):
-        return ''.join(self.comments)
+        return ' '.join(self.comments)
 
     def getMoveWithComment(self):
         return self.move+self.nag + ' ' + ' '.join(self.comments) 
