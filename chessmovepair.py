@@ -10,7 +10,10 @@ class MovePair:
         self.whiteMove=whiteMove
         self.blackMove=blackMove
 
-    def getWhiteMove(self, time=False):
+    def getWhiteMove(self):
+        return self.whiteMove
+
+    def getWhiteMoveToStr(self, time=False):
         if self.whiteMove:
             return self.whiteMove.getMove(time)
         else:
@@ -22,13 +25,19 @@ class MovePair:
         else:
             return ''
 
+    def getWhiteMoveNag(self):
+        return self.whiteMove.getNag()
+
     def getWhiteMoveWithComment(self):
         if self.whiteMove:
             return self.whiteMove.getMoveWithComment()
         else:
             return ''
 
-    def getBlackMove(self, time=False):
+    def getBlackMove(self):
+        return self.blackMove
+
+    def getBlackMoveToStr(self, time=False):
         if self.blackMove:
             return self.blackMove.getMove(time)
         else:
@@ -39,6 +48,9 @@ class MovePair:
             return self.blackMove.getComment()
         else:
             return ''
+
+    def getBlackMoveNag(self):
+        return self.blackMove.getNag()
 
     def getBlackMoveWithComment(self):
         if self.blackMove:

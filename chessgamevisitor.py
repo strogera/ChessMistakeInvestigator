@@ -7,10 +7,15 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
     moves=[]
     variation=False
     variationMoves=[]
+    moveCount=0
+    whiteMoveFlag=False
 
     def visit_move(self, board, move):
         if not self.variation:
+            self.whiteMoveFlag=not self.whiteMoveFlag
             self.moves.append(ChessMove(board.san(move), board.fen()))
+            if self.whiteMoveFlag:
+                self.moveCount+=1
         else:
             self.variationMoves.append(board.san(move))
 
@@ -19,7 +24,7 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
         self.variation=True
 
     def end_variation(self):
-        self.moves[-1].addComment('(' + ' '.join(self.variationMoves) + ')')
+        self.moves[-1].addComment('( ' + str(self.moveCount) + ('. ' if self.whiteMoveFlag else '...  ') + ' '.join(self.variationMoves) + ')')
         self.variation=False
 
     def visit_comment(self, comment):

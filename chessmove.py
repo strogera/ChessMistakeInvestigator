@@ -18,6 +18,9 @@ class ChessMove:
     def addNag(self, nag):
         self.nag=self.parseNag(nag)
 
+    def getNag(self):
+        return self.nag
+
     def parseNag(self, nag):
         if nag == chess.pgn.NAG_GOOD_MOVE:
             return '!'
