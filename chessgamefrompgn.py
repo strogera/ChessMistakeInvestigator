@@ -1,6 +1,7 @@
 import chess.pgn
 from chessmove import ChessMove
 from chessgamevisitor import ChessGameVisitor
+from chessmovepair import MovePair
 
 class ChessGameFromPGN:
     info=[]
@@ -21,7 +22,7 @@ class ChessGameFromPGN:
             self.readGameInfo(pgnFile)
             self.findColorOfUser()
             pgnFile.seek(0)
-            self.moves=chess.pgn.read_game(pgnFile, Visitor=ChessGameVisitor)
+            self.moves=self.makePairsFromMoves(chess.pgn.read_game(pgnFile, Visitor=ChessGameVisitor))
             self.findMistakesOfPlayer()
 
     def readGameInfo(self, pgnFile):
@@ -31,6 +32,20 @@ class ChessGameFromPGN:
 
     def addInfoLine(self, line):
         self.info.append(line)
+
+    def makePairsFromMoves(self, moves):
+        whiteMove=None
+        movePairs=[]
+        for i, move in enumerate(moves):
+            if i%2 == 0:
+                whiteMove=move
+            else:
+                blackMove=move
+                movePairs.append(MovePair(whiteMove, blackMove))
+                whiteMove=None
+        if whiteMove:
+            movePairs.append(MovePair(whiteMove, None))
+        return movePairs
 
     def addMove(self, move):
         self.moves.append(move)
@@ -109,8 +124,40 @@ class ChessGameFromPGN:
         elif color == 'Black':
             moveStr+=move.getWhiteMoveToStr(time=True) + ' ' + move.getBlackMoveWithComment() + ' '
         else:
-            moveStr=move.getWholeMove() + ' '
+            moveStr+=move.getWholeMove() + ' '
         return moveStr
 
     def getMistakes(self):
         return self.mistakes
+
+    def getAllMoves(self):
+        moves=[]
+        for movePair in self.moves:
+            moves.append(movePair.getWhiteMove())
+            moves.append(movePair.getBlackMove())
+        return moves
+
+    def highlightSquaresOfPosition(self, board):
+        whiteAttackersPerSquare={}
+        blackAttackersPerSquare={}
+        for square in chess.SQUARES:
+            whiteAttackersPerSquare[square]=(len(board.attackers(chess.WHITE, square)))
+            blackAttackersPerSquare[square]=(len(board.attackers(chess.BLACK, square)))
+
+        highlightSquareComment=[]
+        if self.playerColor == 'White':
+            squareColorWhiteWinning='G'
+            squareColorBlackWinning='R'
+        else:
+            squareColorWhiteWinning='R'
+            squareColorBlackWinning='G'
+
+        for square in chess.SQUARES:
+            if whiteAttackersPerSquare[square] > blackAttackersPerSquare[square]:
+                highlightSquareComment.append(squareColorWhiteWinning+chess.square_name(square))
+            elif whiteAttackersPerSquare[square] < blackAttackersPerSquare[square]:
+                highlightSquareComment.append(squareColorBlackWinning+chess.square_name(square))
+            else:
+                if whiteAttackersPerSquare[square] != 0:
+                    highlightSquareComment.append('Y' + chess.square_name(square))
+        return '{ ' + '[%csl ' + ','.join(highlightSquareComment) + ']}'

@@ -61,16 +61,5 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
         self.moves[-1].addNag(nag)
 
     def result(self):
-        whiteMove=None
-        movePairs=[]
-        for i, move in enumerate(self.moves):
-            if i%2 == 0:
-                whiteMove=move
-            else:
-                blackMove=move
-                movePairs.append(MovePair(whiteMove, blackMove))
-                whiteMove=None
-        if whiteMove:
-            movePairs.append(MovePair(whiteMove, None))
-        return movePairs
+        return self.moves
 

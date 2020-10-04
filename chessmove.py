@@ -60,10 +60,21 @@ class ChessMove:
         return timeComment
 
     def getComment(self):
-        return ' '.join(self.comments)
+        comments=self.joinCommandComments()
+        return ' '.join(comments)
+
+    def joinCommandComments(self):
+        simComments=''
+        restComments=[]
+        for comment in self.comments:
+            if '[%' in comment:
+                simComments+=' ' + comment[1:-1]
+            else:
+                restComments.append(comment)
+        return [('{ ' + simComments + '}' if simComments != '' else '')] + restComments
 
     def getMoveWithComment(self):
-        return self.move+self.nag + ' ' + ' '.join(self.comments) 
+        return self.move+self.nag + ' ' + self.getComment()
 
     def printMove(self):
         print(self.getMoveWithComment())
