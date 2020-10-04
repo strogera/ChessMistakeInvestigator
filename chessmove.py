@@ -37,8 +37,11 @@ class ChessMove:
         else:
             return ''
 
-    def getMove(self, time=False):
-        return self.move+self.nag + ' ' + (self.getTimeComment() if time else '')
+    def getMove(self, nag=True, time=False):
+        return self.move+(self.nag if nag else '') + ((' ' + self.getTimeComment()) if time else '')
+
+    def getBoard(self):
+        return self.boardStateBeforeMove
 
     def getTimeComment(self):
         timeComment='{ '

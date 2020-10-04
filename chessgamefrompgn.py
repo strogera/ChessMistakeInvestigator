@@ -111,3 +111,6 @@ class ChessGameFromPGN:
         else:
             moveStr=move.getWholeMove() + ' '
         return moveStr
+
+    def getMistakes(self):
+        return self.mistakes
