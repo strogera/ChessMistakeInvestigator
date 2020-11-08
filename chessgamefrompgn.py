@@ -1,29 +1,28 @@
 import chess.pgn
+import enum
 from chessmove import ChessMove
 from chessgamevisitor import ChessGameVisitor
-from chessmovepair import MovePair
+
+class Color(enum.Enum):
+    Black = 1
+    White = 2
+    Unknown = 3
 
 class ChessGameFromPGN:
     info=[]
     moves=[]
-    mistakes=[]
-    playerUserName=''
-    playerColor=''
     pgnFilePath=''
     mistakeDefinitionsForComments=['Inaccuracy', 'Mistake', 'Blunder']
     mistakeDefinitionsForNags=['??', '!?', '?!', '?'] 
 
-    def __init__(self, path, player):
+    def __init__(self, path):
         self.pgnFilePath=path
-        self.playerUserName=player
 
     def buildGameFromFile(self):
         with open(self.pgnFilePath, 'r') as pgnFile:
             self.readGameInfo(pgnFile)
-            self.findColorOfUser()
             pgnFile.seek(0)
-            self.moves=self.makePairsFromMoves(chess.pgn.read_game(pgnFile, Visitor=ChessGameVisitor))
-            self.findMistakesOfPlayer()
+            self.moves=chess.pgn.read_game(pgnFile, Visitor=ChessGameVisitor)
 
     def readGameInfo(self, pgnFile):
         for line in pgnFile:
@@ -33,58 +32,35 @@ class ChessGameFromPGN:
     def addInfoLine(self, line):
         self.info.append(line)
 
-    def makePairsFromMoves(self, moves):
-        whiteMove=None
-        movePairs=[]
-        for i, move in enumerate(moves):
-            if i%2 == 0:
-                whiteMove=move
-            else:
-                blackMove=move
-                movePairs.append(MovePair(whiteMove, blackMove))
-                whiteMove=None
-        if whiteMove:
-            movePairs.append(MovePair(whiteMove, None))
-        return movePairs
-
-    def addMove(self, move):
-        self.moves.append(move)
-
-    def addComment(self, comment):
-        self.comments.append(comment)
-
-    def removeLastCommentandReturn(self):
-        return self.comments.pop()
-
-    def findColorOfUser(self):
+    def findColorOfPlayer(self, playerUserName=''):
         for line in self.info:
-            if self.playerUserName in line:
+            if playerUserName in line:
                 if 'black' in line.lower():
-                    self.playerColor = 'Black'
+                    return Color.Black
                 elif 'white' in line.lower():
-                    self.playerColor = 'White'
+                    return Color.White
+                else:
+                    return Color.Unknown
 
     def isGameLine(self, line):
         return line[0] == '1'
 
-    def findMistakesOfPlayer(self):
-        comments=''
-        playerMoves=self.getMovesOfColor(self.playerColor)
+    def findMistakesOfPlayer(self, playerUserName):
+        playerMoves=self.getMovesOfColor(self.findColorOfPlayer(playerUserName))
+        mistakes=[]
         for move in playerMoves:
             if self.isMistake(move.getComment(), move.getNag()):
-                self.mistakes.append(move)
+                mistakes.append(move)
+        return mistakes
 
     def getMovesOfColor(self, color):
-        moves=[]
-        for movePair in self.moves:
-            if color == 'White':
-                moves.append(movePair.getWhiteMove())
-            elif color == 'Black':
-                moves.append(movePair.getBlackMove())
-            else:
-                moves.append(movePair.getWhiteMove())
-                moves.append(movePair.getBlackMove())
-        return moves
+        if color == Color.White:
+            return self.moves[::2]
+        elif color == Color.Black:
+            return  self.moves[1::2]
+        else:
+            return self.moves
+
             
     def isMistake(self, comment, nag=''):
         return (self.isMistakeFromComments(comment) or self.isMistakeFromNag(nag))
@@ -101,43 +77,45 @@ class ChessGameFromPGN:
                 return True
         return False
 
-    def printMistakes(self):
-        for m in self.mistakes:
-            m.printMove()
-
-    def returnGameWithAnalysisOnlyForPlayer(self):
+    def returnGameWithAnalysisOnlyForPlayer(self, playerUserName=''):
         game=''.join(self.info)
-        game+=self.getGameWithoutOpponentsAnalysis()
+        game+=self.getGameWithoutOpponentsAnalysis(playerUserName)
         return game
 
-    def getGameWithoutOpponentsAnalysis(self):
+    def getGameWithoutOpponentsAnalysis(self, playerUserName=''):
         game=''
         for i in range(len(self.moves)):
-            game+=self.parseMoveForPlayer(self.playerColor, self.moves[i], i+1)
+            if i%2 == 0:
+                game+=str(i+1) + ' '
+            game+=self.parseMoveForPlayer(playerUserName, self.moves[i], i)
+            game+=' '
         game+='\n'
         return game
 
-    def parseMoveForPlayer(self, color, move, moveNumber):
-        moveStr=str(moveNumber) + '. '
-        if color == 'White':
-            moveStr+=move.getWhiteMoveWithComment() + ' ' + move.getBlackMoveToStr(time=True) + ' '
-        elif color == 'Black':
-            moveStr+=move.getWhiteMoveToStr(time=True) + ' ' + move.getBlackMoveWithComment() + ' '
+    def isPlayerToMove(self, playerUserName, index):
+        playerColor=self.findColorOfPlayer(playerUserName)
+        if playerColor == Color.White:
+            return index%2 == 0
+        elif playerColor == Color.Black:
+            return index%2 == 1
         else:
-            moveStr+=move.getWholeMove() + ' '
-        return moveStr
+            return True
 
-    def getMistakes(self):
-        return self.mistakes
+    def parseMoveForPlayer(self, playerUserName, move, index):
+        if self.isPlayerToMove(playerUserName, index):
+            return move.getMoveWithComment()
+        else:
+            return move.getMove(time=True)
 
-    def getAllMoves(self):
-        moves=[]
-        for movePair in self.moves:
-            moves.append(movePair.getWhiteMove())
-            moves.append(movePair.getBlackMove())
-        return moves
+    def getMoves(self):
+        return self.moves
+
+    def highlightAllSquares(self):
+        for move in self.moves:
+            move.addComment(self.highlightSquaresOfPosition(move.getBoard()))
 
     def highlightSquaresOfPosition(self, board):
+        board=chess.Board(fen=board)
         whiteAttackersPerSquare={}
         blackAttackersPerSquare={}
         for square in chess.SQUARES:
@@ -145,12 +123,8 @@ class ChessGameFromPGN:
             blackAttackersPerSquare[square]=(len(board.attackers(chess.BLACK, square)))
 
         highlightSquareComment=[]
-        if self.playerColor == 'White':
-            squareColorWhiteWinning='G'
-            squareColorBlackWinning='R'
-        else:
-            squareColorWhiteWinning='R'
-            squareColorBlackWinning='G'
+        squareColorWhiteWinning='G'
+        squareColorBlackWinning='R'
 
         for square in chess.SQUARES:
             if whiteAttackersPerSquare[square] > blackAttackersPerSquare[square]:

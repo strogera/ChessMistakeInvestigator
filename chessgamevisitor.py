@@ -1,7 +1,6 @@
 import chess
 import chess.pgn
 from chessmove import ChessMove
-from chessmovepair import MovePair
 
 class ChessGameVisitor(chess.pgn.BaseVisitor):
     moves=[]
