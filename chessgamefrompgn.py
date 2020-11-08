@@ -104,29 +104,3 @@ class ChessGameFromPGN:
 
     def getMoves(self):
         return self.moves
-
-    def highlightAllSquares(self):
-        for move in self.moves:
-            move.addComment(self.highlightSquaresOfPosition(move.getBoard()))
-
-    def highlightSquaresOfPosition(self, board):
-        board=chess.Board(fen=board)
-        whiteAttackersPerSquare={}
-        blackAttackersPerSquare={}
-        for square in chess.SQUARES:
-            whiteAttackersPerSquare[square]=(len(board.attackers(chess.WHITE, square)))
-            blackAttackersPerSquare[square]=(len(board.attackers(chess.BLACK, square)))
-
-        highlightSquareComment=[]
-        squareColorWhiteWinning='G'
-        squareColorBlackWinning='R'
-
-        for square in chess.SQUARES:
-            if whiteAttackersPerSquare[square] > blackAttackersPerSquare[square]:
-                highlightSquareComment.append(squareColorWhiteWinning+chess.square_name(square))
-            elif whiteAttackersPerSquare[square] < blackAttackersPerSquare[square]:
-                highlightSquareComment.append(squareColorBlackWinning+chess.square_name(square))
-            else:
-                if whiteAttackersPerSquare[square] != 0:
-                    highlightSquareComment.append('Y' + chess.square_name(square))
-        return '{ ' + '[%csl ' + ','.join(highlightSquareComment) + ']}'

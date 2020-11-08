@@ -1,6 +1,7 @@
 import argparse
 import sys
 from chessgamefrompgn import ChessGameFromPGN
+from highlightsquares import highlightSquaresOfMoves
 
 def main():
     argumentParser= argparse.ArgumentParser()
@@ -19,12 +20,9 @@ def main():
         mistakes=game.findMistakesOfPlayer(playerUserName)
         for m in mistakes:
             print(m.getMoveWithComment())
+        if args.squares:
+            print(highlightSquaresOfMoves(mistakes))
 
-        #print(game.returnGameWithAnalysisOnlyForPlayer())
-
-    if args.squares:
-        game.highlightAllSquares()
-        print(game.returnGameWithAnalysisOnlyForPlayer())
 
     if args.analysis:
         print(game.returnGameWithAnalysisOnlyForPlayer(playerUserName))
