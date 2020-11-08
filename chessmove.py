@@ -12,6 +12,7 @@ class ChessMove:
     moveNumber=''
     moveColor=Color.Unknown
     comments=[]
+    variationMoves=[]
     nag=''
 
     def __init__(self, move, boardStateBeforeMove='', moveNumber='', moveColor=Color.Unknown):
@@ -21,12 +22,16 @@ class ChessMove:
         self.boardStateBeforeMove=boardStateBeforeMove
         self.comments=[]
         self.nag=''
+        self.variationMoves=[]
 
     def addComment(self, comment):
         self.comments.append(comment)
 
     def addNag(self, nag):
         self.nag=self.parseNag(nag)
+
+    def addVariationMoves(self, variationMoves):
+        self.variationMoves=variationMoves
 
     def getNag(self):
         return self.nag
@@ -54,6 +59,8 @@ class ChessMove:
         return self.boardStateBeforeMove
 
     def getTimeComment(self):
+        if len(self.comments) == 0:
+            return ''
         timeComment='{ '
         for comment in self.comments:
             if '[%clk' in comment:
@@ -61,13 +68,48 @@ class ChessMove:
                 while not curString.startswith('[%clk'):
                     curString=curString[1:]
                 for c in curString:
-                    if c != ']':
-                        timeComment+=c
-                    else:
-                        timeComment+=c+' }'
+                    timeComment+=c
+                    if c == ']':
                         break 
                 break
-        return timeComment
+        return timeComment +'}'
+
+    def getVariationMoves(self):
+        return self.variationMoves
+
+    def parseVariationMoves(self):
+        if len(self.variationMoves) > 0:
+            return '(' + ' '.join([varMove.getMove() for varMove in self.variationMoves])+')'
+        else:
+            return ''
+        #TODO variation with numbers // deleted from chessgamevisitor.py
+        '''
+        variationComment='( '+ str(self.moveCount) + ('. ' if self.whiteMoveFlag else '... ') + self.variationMoves[0]
+        variationMoveCounter=self.moveCount
+
+        variationMovesToBeNumbered=self.variationMoves[1::2]
+        variationMovesRest=self.variationMoves[2::2]
+
+        variationMovesNumbered=self.addNumbersToMoves(variationMovesToBeNumbered, variationMoveCounter)
+
+        return variationComment + ' '.join(self.joinMovesForVariation(variationMovesNumbered, variationMovesRest)) + ')' 
+
+    def addNumbersToMoves(self, moves, startingNumber):
+        #ex. (e4, 1) -> 1. e4
+        counter=startingNumber
+        numberedMoves=[]
+        for move in moves:
+            move= ' ' + str(counter) + '. ' + move
+            numberedMoves.append(move)
+            counter+=1
+        return numberedMoves
+
+    def joinMovesForVariation(self, numbered, rest):
+        result=[None]*(len(numbered)+len(rest))
+        result[::2]=numbered
+        result[1::2]=rest
+        return result
+        '''
 
     def getComment(self):
         comments=self.joinCommandComments()
@@ -84,7 +126,7 @@ class ChessMove:
         return [('{ ' + simComments + '}' if simComments != '' else '')] + restComments
 
     def getMoveWithComment(self):
-        return self.move+self.nag + ' ' + self.getComment()
+        return self.move+self.nag + ' ' + self.getComment() + ' ' +self.parseVariationMoves()
 
     def printMove(self):
         print(self.getMoveWithComment())
