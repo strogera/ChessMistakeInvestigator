@@ -1,12 +1,7 @@
 import chess.pgn
-import enum
 from chessmove import ChessMove
+from chessmove import Color
 from chessgamevisitor import ChessGameVisitor
-
-class Color(enum.Enum):
-    Black = 1
-    White = 2
-    Unknown = 3
 
 class ChessGameFromPGN:
     info=[]

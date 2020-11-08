@@ -1,13 +1,23 @@
 import chess 
+import enum
+
+class Color(enum.Enum):
+    Black = 1
+    White = 2
+    Unknown = 3
 
 class ChessMove:
     boardStateBeforeMove=''
     move=''
+    moveNumber=''
+    moveColor=Color.Unknown
     comments=[]
     nag=''
 
-    def __init__(self, move, boardStateBeforeMove=''):
+    def __init__(self, move, boardStateBeforeMove='', moveNumber='', moveColor=Color.Unknown):
         self.move=move
+        self.moveNumber=''
+        self.moveColor=moveColor
         self.boardStateBeforeMove=boardStateBeforeMove
         self.comments=[]
         self.nag=''

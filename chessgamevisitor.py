@@ -1,6 +1,7 @@
 import chess
 import chess.pgn
 from chessmove import ChessMove
+from chessmove import Color
 
 class ChessGameVisitor(chess.pgn.BaseVisitor):
     moves=[]
@@ -12,9 +13,13 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
     def visit_move(self, board, move):
         if not self.isVariation:
             self.whiteMoveFlag=not self.whiteMoveFlag
-            self.moves.append(ChessMove(board.san(move), board.fen()))
+            moveColor=Color.Unknown
             if self.whiteMoveFlag:
                 self.moveCount+=1
+                moveColor=Color.White
+            else:
+                moveColor=Color.Black
+            self.moves.append(ChessMove(board.san(move), board.fen(), self.moveCount, moveColor))
         else:
             self.variationMoves.append(board.san(move))
 
