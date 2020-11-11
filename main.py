@@ -2,6 +2,7 @@ import argparse
 import sys
 from chessgamefrompgn import ChessGameFromPGN
 from highlightsquares import highlightSquaresOfMoves
+#from highlightsquares import highlightDifferentSquaresOfMoves
 
 def main():
     argumentParser= argparse.ArgumentParser()
@@ -22,6 +23,8 @@ def main():
             print(m.getMoveWithComment())
         if args.squares:
             print(highlightSquaresOfMoves(mistakes))
+            #print( highlightDifferentSquaresOfMoves(mistakes))
+
 
 
     if args.analysis:

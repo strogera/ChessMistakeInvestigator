@@ -125,8 +125,8 @@ class ChessMove:
                 restComments.append(comment)
         return [('{ ' + simComments + '}' if simComments != '' else '')] + restComments
 
-    def getMoveWithComment(self):
-        return self.move+self.nag + ' ' + self.getComment() + ' ' +self.parseVariationMoves()
+    def getMoveWithComment(self, var=True):
+        return self.move+self.nag + ' ' + self.getComment() + ' ' + (self.parseVariationMoves() if var else '')
 
     def printMove(self):
         print(self.getMoveWithComment())

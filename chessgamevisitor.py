@@ -21,7 +21,7 @@ class ChessGameVisitor(chess.pgn.BaseVisitor):
                 moveColor=Color.Black
             self.moves.append(ChessMove(board.san(move), board.fen(), self.moveCount, moveColor))
         else:
-            self.variationMoves.append(ChessMove(board.san(move)))
+            self.variationMoves.append(ChessMove(board.san(move), board.fen()))
 
     def begin_variation(self):
         self.isVariation=True
